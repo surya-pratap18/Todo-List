@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section id="auth-view" class="auth-view">
+      <div class="brand-panel">
+        <p class="eyebrow">Todo List</p>
+        <h1>Plan the work. Clear the day.</h1>
+        <p class="intro">Sign in to manage your tasks, move status forward, and keep your list focused.</p>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="Authentication">
+          <button class="tab-btn active" id="login-tab" type="button">Login</button>
+          <button class="tab-btn" id="register-tab" type="button">Register</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <label for="login-userName">Username</label>
+          <input id="login-userName" name="userName" type="text" autocomplete="username" required>
+
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+
+          <button class="primary-btn" type="submit">Login</button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+          <label for="register-name">Name</label>
+          <input id="register-name" name="name" type="text" autocomplete="name" required>
+
+          <label for="register-userName">Username</label>
+          <input id="register-userName" name="userName" type="text" autocomplete="username" required>
+
+          <label for="register-password">Password</label>
+          <input id="register-password" name="password" type="password" autocomplete="new-password" required>
+
+          <button class="primary-btn" type="submit">Create account</button>
+        </form>
+
+        <p id="auth-message" class="form-message" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="task-view" class="task-view hidden">
+      <header class="task-header">
+        <div>
+          <p class="eyebrow">Workspace</p>
+          <h1>Your Tasks</h1>
+        </div>
+        <div class="header-actions">
+          <button id="add-task-btn" class="primary-btn" type="button">Add task</button>
+          <button id="logout-btn" class="ghost-btn" type="button">Logout</button>
+        </div>
+      </header>
+
+      <div class="status-bar">
+        <button class="filter-btn active" data-filter="all" type="button">All</button>
+        <button class="filter-btn" data-filter="pending" type="button">Pending</button>
+        <button class="filter-btn" data-filter="in progress" type="button">In progress</button>
+        <button class="filter-btn" data-filter="done" type="button">Done</button>
+      </div>
+
+      <p id="task-message" class="form-message" aria-live="polite"></p>
+      <section id="task-list" class="task-list" aria-live="polite"></section>
+    </section>
+  </main>
+
+  <div id="modal-root"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
