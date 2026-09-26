@@ -70,7 +70,7 @@ const port = 3000;
 app.use(express.json());
 app.use(express.static("public"));
 
-app.get("/{*any}", () => {
+app.get("/{*any}", (req, res) => {
   res.sendFile(path.join(rootPath, "public", "index.html"));
 });
 
