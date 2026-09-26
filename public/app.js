@@ -37,10 +37,16 @@ const apiRequest = async (url, options = {}) => {
     headers,
   });
 
-  const data = await response.json().catch(() => ({}));
+  const contentType = response.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  const data = isJson ? await response.json().catch(() => ({})) : {};
 
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    throw new Error(data.message || `Request failed (${response.status})`);
+  }
+
+  if (!isJson) {
+    throw new Error("The server returned an unexpected response.");
   }
 
   return data;
@@ -90,20 +96,23 @@ const showView = () => {
 const getFormData = (form) => Object.fromEntries(new FormData(form).entries());
 
 const renderTasks = () => {
-  const visibleTasks = state.filter === "all"
-    ? state.tasks
-    : state.tasks.filter((task) => task.status === state.filter);
+  const visibleTasks =
+    state.filter === "all"
+      ? state.tasks
+      : state.tasks.filter((task) => task.status === state.filter);
 
   if (!visibleTasks.length) {
     taskList.innerHTML = `<div class="empty-state">No tasks found.</div>`;
     return;
   }
 
-  taskList.innerHTML = visibleTasks.map((task) => {
-    const statusClass = task.status === "in progress" ? "in-progress" : task.status;
-    const description = task.description || "No description added.";
+  taskList.innerHTML = visibleTasks
+    .map((task) => {
+      const statusClass =
+        task.status === "in progress" ? "in-progress" : task.status;
+      const description = task.description || "No description added.";
 
-    return `
+      return `
       <article class="task-card">
         <div>
           <div class="task-meta">
@@ -120,7 +129,8 @@ const renderTasks = () => {
         </div>
       </article>
     `;
-  }).join("");
+    })
+    .join("");
 };
 
 const escapeHtml = (value) => {
@@ -155,11 +165,13 @@ const openModal = (content) => {
     </div>
   `;
 
-  modalRoot.querySelector(".modal-backdrop").addEventListener("click", (event) => {
-    if (event.target.classList.contains("modal-backdrop")) {
-      closeModal();
-    }
-  });
+  modalRoot
+    .querySelector(".modal-backdrop")
+    .addEventListener("click", (event) => {
+      if (event.target.classList.contains("modal-backdrop")) {
+        closeModal();
+      }
+    });
 
   document.addEventListener("keydown", handleModalKeydown);
 };
@@ -190,14 +202,22 @@ const taskFormTemplate = (task = null) => {
       <label for="task-description">Description</label>
       <textarea id="task-description" name="description">${escapeHtml(task?.description || "")}</textarea>
 
-      ${isEdit ? `
+      ${
+        isEdit
+          ? `
         <label for="task-status">Status</label>
         <select id="task-status" name="status">
-          ${statuses.map((status) => `
+          ${statuses
+            .map(
+              (status) => `
             <option value="${status}" ${task?.status === status ? "selected" : ""}>${status}</option>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </select>
-      ` : ""}
+      `
+          : ""
+      }
 
       <div class="modal-actions">
         <button class="ghost-btn" type="button" data-close>Cancel</button>
@@ -207,7 +227,7 @@ const taskFormTemplate = (task = null) => {
   `;
 };
 
-const escapeAttribute = (value) => escapeHtml(value).replaceAll("\"", "&quot;");
+const escapeAttribute = (value) => escapeHtml(value).replaceAll('"', "&quot;");
 
 const openTaskModal = (task = null) => {
   openModal(taskFormTemplate(task));
@@ -216,26 +236,32 @@ const openTaskModal = (task = null) => {
     button.addEventListener("click", closeModal);
   });
 
-  modalRoot.querySelector("#task-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
+  modalRoot
+    .querySelector("#task-form")
+    .addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    try {
-      const body = getFormData(event.currentTarget);
-      const url = task ? `/tasks/${task._id}` : "/tasks";
-      const method = task ? "PUT" : "POST";
+      try {
+        const body = getFormData(event.currentTarget);
+        const url = task ? `/tasks/${task._id}` : "/tasks";
+        const method = task ? "PUT" : "POST";
 
-      await apiRequest(url, {
-        method,
-        body: JSON.stringify(body),
-      });
+        await apiRequest(url, {
+          method,
+          body: JSON.stringify(body),
+        });
 
-      closeModal();
-      await loadTasks();
-      setMessage(taskMessage, task ? "Task updated." : "Task created.", "success");
-    } catch (error) {
-      setMessage(taskMessage, error.message, "error");
-    }
-  });
+        closeModal();
+        await loadTasks();
+        setMessage(
+          taskMessage,
+          task ? "Task updated." : "Task created.",
+          "success",
+        );
+      } catch (error) {
+        setMessage(taskMessage, error.message, "error");
+      }
+    });
 };
 
 const openDeleteModal = (task) => {
@@ -255,16 +281,18 @@ const openDeleteModal = (task) => {
     button.addEventListener("click", closeModal);
   });
 
-  modalRoot.querySelector("#confirm-delete").addEventListener("click", async () => {
-    try {
-      await apiRequest(`/tasks/${task._id}`, { method: "DELETE" });
-      closeModal();
-      await loadTasks();
-      setMessage(taskMessage, "Task deleted.", "success");
-    } catch (error) {
-      setMessage(taskMessage, error.message, "error");
-    }
-  });
+  modalRoot
+    .querySelector("#confirm-delete")
+    .addEventListener("click", async () => {
+      try {
+        await apiRequest(`/tasks/${task._id}`, { method: "DELETE" });
+        closeModal();
+        await loadTasks();
+        setMessage(taskMessage, "Task deleted.", "success");
+      } catch (error) {
+        setMessage(taskMessage, error.message, "error");
+      }
+    });
 };
 
 loginTab.addEventListener("click", () => setAuthMode("login"));
@@ -350,7 +378,9 @@ taskList.addEventListener("click", async (event) => {
 
 document.querySelectorAll(".filter-btn").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach((item) => item.classList.remove("active"));
+    document
+      .querySelectorAll(".filter-btn")
+      .forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
     state.filter = button.dataset.filter;
     renderTasks();
